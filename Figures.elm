@@ -1,8 +1,6 @@
 module Figures exposing (..)
 
-type alias Rotation = List (Int, Int)
-type alias Figure = List Rotation
-
+import Types exposing (..)
 
 randomFigure : Int -> Figure
 randomFigure rand =

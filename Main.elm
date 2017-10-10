@@ -1,31 +1,28 @@
-import Html exposing (Html, table, tr, td, program)
-import Html.Attributes exposing (style, id)
-import Time exposing (Time, second, every)
+import Html exposing (Html, program)
+import Time exposing (second, every)
 import Random exposing (generate, int)
 
+import Types exposing (..)
 import Figures exposing (..)
 import Display exposing (..)
+import Update exposing (..)
 
 main = program { init = init, update = update, subscriptions = subscriptions, view = view }
 
 type alias Model =
     { figure : Figure,
       rotation : Int,
+      currentPos : Rotation,
       position : Position,
       pile : Pile
     }
 
-type alias Pile = List Position
+initialPile =
+    [(1, 1), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0), (9, 0), (10, 0)] 
 
-type alias Position = (Int, Int)
-
-model = { figure = [], rotation = 1, position = (5, 20), pile = [] }
-        
-type Msg = Tick Time
-         | Start
-         | RandomFig Int
-         | RandomRot Int
-
+model =
+    { figure = [], rotation = 1, currentPos = [], position = (5, 20), pile = initialPile }
+           
 init = (model, generate RandomFig (int 1 7))
        
 subscriptions : Model -> Sub Msg
@@ -35,23 +32,16 @@ subscriptions model =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
-        Tick _ -> ({ model | position = (Tuple.first model.position,
-                                         Tuple.second model.position - 1) }, Cmd.none)
+        Tick _ -> updateOnTick msg model
                   
         Start -> (model, generate RandomFig (int 1 7))
 
         RandomFig rand -> ({ model | figure = randomFigure rand},
                            generate RandomRot (int 1 (List.length model.figure)))
 
-        RandomRot rot -> ({ model | rotation = rot } , Cmd.none)
+        RandomRot rot -> updateOnRandomRot { model | rotation = rot }
                           
 view : Model -> Html msg
-view { figure, rotation, position, pile } =
-    let (col, row) = position
-        fuck = List.head (List.drop (rotation - 1) figure)
-    in
-        case fuck of
-            Just just -> let currentRotation = just
-                             currentPositions = List.map (\(c, r) -> (col + c, row + r)) currentRotation
-                         in mainDisplay currentPositions
-            Nothing -> Html.text "fuck"
+view { currentPos, pile } =
+    mainDisplay currentPos pile
+
