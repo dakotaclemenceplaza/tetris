@@ -53,18 +53,17 @@ update msg model =
                           in case Maybe.map size fig of
                                  Just n -> ({ model | figure = fig,
                                                   rotationSize = n },
-                                            generate RandomRot (int 0 (n - 1)))
+                                                generate RandomRot (int 0 (n - 1)))
                                  Nothing -> (model, Cmd.none)
 
-        RandomRot rot -> updateRotation { model | rotation = rot }
+        RandomRot rot -> updateRotation model rot
 
         Key code -> case code of
                         32 -> ({ model | down = not model.down }, Cmd.none)
                         80 -> ({ model | pause = not model.pause }, Cmd.none)
-                        82 -> updateRotation { model | rotation =
-                                                   (model.rotation + 1) % model.rotationSize }
-                        37 -> move model Left
-                        39 -> move model Right 
+                        82 -> updateRotation model ((model.rotation + 1) % model.rotationSize)
+                        37 -> move model ((-) 1)
+                        39 -> move model ((+) 1)
                         _ -> (model, Cmd.none)
                             
 view : Model -> Html msg

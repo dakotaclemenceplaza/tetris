@@ -1,4 +1,4 @@
-module Figures exposing (..)
+module Figures exposing (randomFigure)
 
 import Types exposing (Figure)
 import Dict exposing (Dict, fromList)
