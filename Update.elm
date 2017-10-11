@@ -2,6 +2,7 @@ module Update exposing (..)
 
 import Random exposing (generate, int)
 import Types exposing (..)
+import Dict exposing (..)
 
 updateOnTick msg model =
     let position = model.position
@@ -17,12 +18,15 @@ updateOnTick msg model =
             generate RandomFig (int 1 7))
 
 updateOnRandomRot model =
-    let figure = model.figure
-        rotation = model.rotation
-        (col, row) = model.position
-        chooseRotation = List.head (List.drop (rotation - 1) figure)
-    in case chooseRotation of
-           Just rot -> ({ model | currentPos = List.map (\(c, r) -> (col + c, row + r)) rot },
-                            Cmd.none)
-           Nothing -> (model, Cmd.none)
+    case model.figure of
+        Just fig ->
+            let rotation = model.rotation
+                (col, row) = model.position
+                chooseRotation = get rotation fig
+            in case chooseRotation of
+                   Just rot ->
+                       ({ model | currentPos = List.map (\(c, r) -> (col + c, row + r)) rot },
+                        Cmd.none)
+                   Nothing -> (model, Cmd.none)
+        Nothing -> (model, Cmd.none)
                                               

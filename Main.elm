@@ -1,6 +1,7 @@
 import Html exposing (Html, program)
 import Time exposing (second, every)
 import Random exposing (generate, int)
+import Dict exposing (..)
 
 import Types exposing (..)
 import Figures exposing (..)
@@ -10,7 +11,7 @@ import Update exposing (..)
 main = program { init = init, update = update, subscriptions = subscriptions, view = view }
 
 type alias Model =
-    { figure : Figure,
+    { figure : Maybe Figure,
       rotation : Int,
       currentPos : Rotation,
       position : Position,
@@ -21,7 +22,12 @@ initialPile =
     [(1, 1), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0), (9, 0), (10, 0)] 
 
 model =
-    { figure = [], rotation = 1, currentPos = [], position = (5, 20), pile = initialPile }
+    { figure = Just (fromList [(0, [])]),
+      rotation = 1,
+      currentPos = [],
+      position = (5, 20),
+      pile = initialPile
+    }
            
 init = (model, generate RandomFig (int 1 7))
        
@@ -36,8 +42,11 @@ update msg model =
                   
         Start -> (model, generate RandomFig (int 1 7))
 
-        RandomFig rand -> ({ model | figure = randomFigure rand},
-                           generate RandomRot (int 1 (List.length model.figure)))
+        RandomFig rand -> let fig = get rand randomFigure
+                          in case Maybe.map size fig of
+                                 Just n -> ({ model | figure = fig},
+                                            generate RandomRot (int 1 n))
+                                 Nothing -> (model, Cmd.none)
 
         RandomRot rot -> updateOnRandomRot { model | rotation = rot }
                           
