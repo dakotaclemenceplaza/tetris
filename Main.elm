@@ -1,5 +1,5 @@
 import Html exposing (Html, program)
-import Time exposing (second, every)
+import Time exposing (second, millisecond, every)
 import Random exposing (generate, int)
 import Dict exposing (..)
 import Keyboard exposing (downs)
@@ -18,11 +18,9 @@ type alias Model =
       currentPos : Rotation,
       position : Position,
       pile : Pile,
-      pause : Bool
+      pause : Bool,
+      down : Bool
     }
-
-initialPile =
-    [(1, 1), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0), (9, 0), (10, 0)] 
 
 model =
     { figure = Just (fromList [(0, [])]),
@@ -31,7 +29,8 @@ model =
       currentPos = [],
       position = (5, 20),
       pile = initialPile,
-      pause = True
+      pause = True,
+      down = False
     }
            
 init = (model, generate RandomFig (int 1 7))
@@ -41,7 +40,9 @@ subscriptions model =
     Sub.batch [downs Key,
                if model.pause
                then Sub.none
-               else every second Tick]
+               else if model.down
+                    then every (10 * millisecond) Tick
+                    else every second Tick]
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -58,9 +59,12 @@ update msg model =
         RandomRot rot -> updateRotation { model | rotation = rot }
 
         Key code -> case code of
-                        32 -> ({ model | pause = not model.pause }, Cmd.none)
+                        32 -> ({ model | down = not model.down }, Cmd.none)
+                        80 -> ({ model | pause = not model.pause }, Cmd.none)
                         82 -> updateRotation { model | rotation =
                                                    (model.rotation + 1) % model.rotationSize }
+                        37 -> move model Left
+                        39 -> move model Right 
                         _ -> (model, Cmd.none)
                             
 view : Model -> Html msg
