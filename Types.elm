@@ -5,7 +5,6 @@ import Dict exposing (..)
 import Keyboard exposing (KeyCode)
 
 type Msg = Tick Time
-         | Start
          | RandomFig Int
          | RandomRot Int
          | Key KeyCode

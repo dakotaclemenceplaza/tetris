@@ -14,6 +14,7 @@ main = program { init = init, update = update, subscriptions = subscriptions, vi
 type alias Model =
     { figure : Maybe Figure,
       rotation : Int,
+      rotationSize : Int,
       currentPos : Rotation,
       position : Position,
       pile : Pile,
@@ -26,6 +27,7 @@ initialPile =
 model =
     { figure = Just (fromList [(0, [])]),
       rotation = 1,
+      rotationSize = 0,
       currentPos = [],
       position = (5, 20),
       pile = initialPile,
@@ -44,22 +46,23 @@ subscriptions model =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
-        Tick _ -> updateOnTick msg model
+        Tick _ -> updateOnTick model
                   
-        Start -> (model, generate RandomFig (int 1 7))
-
         RandomFig rand -> let fig = get rand randomFigure
                           in case Maybe.map size fig of
-                                 Just n -> ({ model | figure = fig},
-                                            generate RandomRot (int 1 n))
+                                 Just n -> ({ model | figure = fig,
+                                                  rotationSize = n },
+                                            generate RandomRot (int 0 (n - 1)))
                                  Nothing -> (model, Cmd.none)
 
-        RandomRot rot -> updateOnRandomRot { model | rotation = rot }
+        RandomRot rot -> updateRotation { model | rotation = rot }
 
         Key code -> case code of
                         32 -> ({ model | pause = not model.pause }, Cmd.none)
+                        82 -> updateRotation { model | rotation =
+                                                   (model.rotation + 1) % model.rotationSize }
                         _ -> (model, Cmd.none)
-                          
+                            
 view : Model -> Html msg
 view { currentPos, pile } =
     mainDisplay currentPos pile

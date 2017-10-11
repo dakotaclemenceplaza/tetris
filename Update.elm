@@ -4,7 +4,7 @@ import Random exposing (generate, int)
 import Types exposing (..)
 import Dict exposing (..)
 
-updateOnTick msg model =
+updateOnTick model =
     let position = model.position
         newPos = Tuple.second position - 1
         newCurrentPos = List.map (\(c, r) -> (c, r - 1)) model.currentPos
@@ -17,7 +17,7 @@ updateOnTick msg model =
        else ({ model | pile = model.currentPos ++ model.pile, position = (5, 20) },
             generate RandomFig (int 1 7))
 
-updateOnRandomRot model =
+updateRotation model =
     case model.figure of
         Just fig ->
             let rotation = model.rotation
