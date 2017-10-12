@@ -46,38 +46,41 @@ subscriptions model =
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
+    let rot = model.rotation
+        (col, row) = model.position
+    in
     case msg of
-        Tick _ -> case upd { model | position = (Tuple.first model.position,
-                                                     Tuple.second model.position - 1) } of
-                      Just newModel -> (newModel, Cmd.none)
-                      Nothing -> ({ model | pile =
-                                       destroyRow (model.currentPos ++ model.pile) 1,
-                                       position = (5, 20),
-                                       down = if model.down then False else model.down } ,
-                                 generate RandomFig (int 1 7))
+        Tick _ ->
+            case upd { model | position = (col, row - 1) } of
+                Just newModel -> (newModel, Cmd.none)
+                Nothing -> ({ model | pile =
+                                  destroyRow (model.currentPos ++ model.pile) 1,
+                                  position = (5, 20),
+                                  down = if model.down then False else model.down },
+                                generate RandomFig (int 1 7))
                   
-        RandomFig rand -> case get rand randomFigure of
-                              Just fig -> ({ model | figure = fig },
-                                               generate RandomRot (int 0 (size fig - 1)))
-                              Nothing -> (model, Cmd.none)
+        RandomFig rand ->
+            case get rand randomFigure of
+                Just fig -> ({ model | figure = fig },
+                                 generate RandomRot (int 0 (size fig - 1)))
+                Nothing -> (model, Cmd.none)
 
-        RandomRot rot -> (Maybe.withDefault model (upd { model | rotation = rot }), Cmd.none)
+        RandomRot rot ->
+            (Maybe.withDefault model (upd { model | rotation = rot }), Cmd.none)
 
-        Key code -> case code of
-                        32 -> ({ model | down = not model.down }, Cmd.none)
-                        80 -> ({ model | pause = not model.pause }, Cmd.none)
-                        82 -> (Maybe.withDefault model (upd { model | rotation = 
-                                                           (model.rotation + 1) % (size model.figure) }) , Cmd.none)
-                        37 -> (Maybe.withDefault model (upd ({ model | position =
-                                                      (Tuple.first model.position - 1,
-                                                           Tuple.second model.position) })) ,
-                                   Cmd.none)
-                        39 -> (Maybe.withDefault model (upd ({ model | position =
-                                                      (Tuple.first model.position + 1,
-                                                           Tuple.second model.position) })) ,
-                                   Cmd.none)
-                        83 -> ({ model | start = not model.start }, generate RandomFig (int 1 7))
-                        _ -> (model, Cmd.none)
+        Key code ->
+            case code of
+                32 -> ({ model | down = not model.down }, Cmd.none)
+                80 -> ({ model | pause = not model.pause }, Cmd.none)
+                82 -> (Maybe.withDefault model
+                           (upd { model | rotation = 
+                                      (rot + 1) % (size model.figure) }) , Cmd.none)
+                37 -> (Maybe.withDefault model (upd ({ model | position =
+                                                      (col - 1, row) })), Cmd.none)
+                39 -> (Maybe.withDefault model (upd ({ model | position =
+                                                      (col + 1, row) })), Cmd.none)
+                83 -> ({ model | start = not model.start }, generate RandomFig (int 1 7))
+                _ -> (model, Cmd.none)
 
 view : Model -> Html msg
 view { currentPos, pile } =

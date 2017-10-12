@@ -1,21 +1,19 @@
 module Update exposing (upd, destroyRow)
 
-import Random exposing (generate, int)
 import Types exposing (..)
 import Dict exposing (get)
 
 upd model =
     let chooseRotation = get model.rotation model.figure
         (col, row) = model.position
-    in case chooseRotation of
-           Just rot -> let newPos = List.map (\(c, r) -> (col + c, row + r)) rot
-                       in if notPile model.pile newPos
-                          then Just { model | currentPos = newPos }
-                          else Nothing
-           Nothing -> Nothing
-                      
+        newPos = Maybe.map (List.map (\(c, r) -> (col + c, row + r))) chooseRotation
+    in newPos |> Maybe.andThen (notPile model.pile)
+              |> Maybe.andThen (\newPos -> Just { model | currentPos = newPos })
+
 notPile pile pos =
-    List.all (\(c, r) -> List.all (\(co, ro) -> co /= c || ro /= r) pile) pos
+    if List.all (\(c, r) -> List.all (\(co, ro) -> co /= c || ro /= r) pile) pos
+    then Just pos
+    else Nothing
 
 destroyRow pile currentRow =
     if currentRow < 21
