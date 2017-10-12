@@ -12,7 +12,7 @@ makeRows pos row =
 
 makeCell pos row col =
     if List.any (\(c, r) -> r == row && c == col) pos
-    then td [ style [("background-color", "green")] ] []
+    then td [ style [("background-color", "#a6a6a6")] ] []
     else td [] []
                                          
 trList = [20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]

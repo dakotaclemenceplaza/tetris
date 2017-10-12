@@ -6,9 +6,9 @@ import Dict exposing (get)
 upd model =
     let chooseRotation = get model.rotation model.figure
         (col, row) = model.position
-        newPos = Maybe.map (List.map (\(c, r) -> (col + c, row + r))) chooseRotation
-    in newPos |> Maybe.andThen (notPile model.pile)
-              |> Maybe.andThen (\newPos -> Just { model | currentPos = newPos })
+    in Maybe.map (List.map (\(c, r) -> (col + c, row + r))) chooseRotation
+        |> Maybe.andThen (notPile model.pile)
+        |> Maybe.andThen (\newPos -> Just { model | currentPos = newPos })
 
 notPile pile pos =
     if List.all (\(c, r) -> List.all (\(co, ro) -> co /= c || ro /= r) pile) pos
