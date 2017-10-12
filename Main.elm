@@ -1,4 +1,6 @@
-import Html exposing (Html, program, div, h2, text)
+import Html exposing (Html, program, div, h2, p, text, span)
+import Html.Attributes exposing (id, class, property)
+import Json.Encode exposing (string)
 import Time exposing (second, millisecond, every)
 import Random exposing (generate, int)
 import Dict exposing (fromList, get, size)
@@ -83,8 +85,22 @@ update msg model =
                 _ -> (model, Cmd.none)
 
 view : Model -> Html msg
-view { currentPos, pile } =
-    div []
+view { currentPos, pile, start } =
+    div [ id "main" ]
         [  h2 [] [ text "Tetris" ],
-           mainDisplay currentPos pile ]
+           if not start
+           then p [ id "starting" ] [ text "Press Space to start the Game" ]
+           else text "",
+           div [ id (if not start then "opacity" else "") ] [ mainDisplay currentPos pile ],
+           div [ id "controls" ] [
+                p [ class "rotate" ] [ text "r" ],
+                p [ class "rotate" ] [ text "rotate" ],
+                p []
+                    [ leftArr, span [ id "left" ] [ text "left" ],
+                      span [ id "right" ] [ text "right", rightArr ] ],
+                p [ class "down" ] [ text "down" ] ,
+                p [ class "down", property "innerHTML" (string "&darr;") ] [] ] 
+        ]
 
+leftArr = span [ class "left", property "innerHTML" (string "&larr;") ] []
+rightArr = span [ id "rarr", property "innerHTML" (string "&rarr;") ] []
