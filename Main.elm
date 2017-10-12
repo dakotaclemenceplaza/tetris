@@ -1,12 +1,12 @@
-import Html exposing (Html, program)
+import Html exposing (Html, program, div, h2, text)
 import Time exposing (second, millisecond, every)
 import Random exposing (generate, int)
-import Dict exposing (..)
+import Dict exposing (fromList, get, size)
 import Keyboard exposing (downs)
 
 import Types exposing (..)
-import Figures exposing (..)
-import Display exposing (..)
+import Figures exposing (randomFigure)
+import Display exposing (mainDisplay, initialPile)
 import Update exposing (..)
 
 main = program { init = init, update = update, subscriptions = subscriptions, view = view }
@@ -68,5 +68,7 @@ update msg model =
                             
 view : Model -> Html msg
 view { currentPos, pile } =
-    mainDisplay currentPos pile
+    div []
+        [  h2 [] [ text "Tetris" ],
+           mainDisplay currentPos pile ]
 
