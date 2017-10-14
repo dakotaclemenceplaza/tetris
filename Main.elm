@@ -93,13 +93,13 @@ view { currentPos, pile, start } =
            else text "",
            div [ id (if not start then "opacity" else "") ] [ mainDisplay currentPos pile ],
            div [ id "controls" ] [
-                p [ class "rotate" ] [ text "r" ],
-                p [ class "rotate" ] [ text "rotate" ],
+                div [ class "rotate" ] [ p [] [ text "r" ],
+                                         p [] [ text "rotate" ] ],
                 p []
                     [ leftArr, span [ id "left" ] [ text "left" ],
                       span [ id "right" ] [ text "right", rightArr ] ],
-                p [ class "down" ] [ text "down" ] ,
-                p [ class "down", property "innerHTML" (string "&darr;") ] [] ] 
+                div [ class "down" ] [ p [] [ text "down" ] ,
+                                       p [ property "innerHTML" (string "&darr;") ] [] ] ]
         ]
 
 leftArr = span [ class "left", property "innerHTML" (string "&larr;") ] []
