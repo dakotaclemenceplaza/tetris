@@ -14,3 +14,20 @@ type alias Pile = List Position
 type alias Rotation = List Position
 
 type alias Figure = Dict Int Rotation
+
+type alias Level = Int
+type alias Score = Int
+    
+type alias Model =
+    { figure : Figure,
+      rotation : Int,
+      currentPos : Rotation,
+      position : Position,
+      pile : Pile,
+      pause : Bool,
+      down : Bool,
+      start : Bool,
+      level : Level,
+      score : Score,
+      btbTetris : Bool
+    }

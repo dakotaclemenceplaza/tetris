@@ -13,19 +13,6 @@ import Update exposing (..)
 
 main = program { init = init, update = update, subscriptions = subscriptions, view = view }
 
-type alias Model =
-    { figure : Figure,
-      rotation : Int,
-      currentPos : Rotation,
-      position : Position,
-      pile : Pile,
-      pause : Bool,
-      down : Bool,
-      start : Bool,
-      level : Int,
-      score : Int
-    }
-
 model =
     { figure = fromList [(0, [])],
       rotation = 1,
@@ -36,7 +23,8 @@ model =
       down = False,
       start = False,
       level = 0,
-      score = 0
+      score = 0,
+      btbTetris = False
     }
            
 init = (model, Cmd.none)
@@ -50,6 +38,7 @@ subscriptions model =
                     then every (10 * millisecond) Tick
                     else every second Tick]
 
+        
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     let rot = model.rotation
@@ -60,7 +49,7 @@ update msg model =
             case upd { model | position = (col, row - 1) } of
                 Just newModel -> (newModel, Cmd.none)
                 Nothing -> let (newPile, addScore) =
-                                   destroyRow (model.currentPos ++ model.pile) 1 0 model.level
+                                   destroyRows (model.currentPos ++ model.pile) 1 0 (model.level + 1)
                            in ({ model | pile = newPile,
                                      position = (5, 20),
                                      score = model.score + addScore,
@@ -90,29 +79,31 @@ update msg model =
                 83 -> ({ model | start = not model.start }, generate RandomFig (int 1 7))
                 _ -> (model, Cmd.none)
 
-view : Model -> Html msg
+                     
+view : Model -> Html Msg
 view { currentPos, pile, start, level, score } =
-    div [ id "main" ]
-        [  h2 [] [ text "Tetris" ],
-           if not start
-           then p [ id "starting" ] [ text "Press Space to start the Game" ]
-           else text "",
-           div [ id "gameInfo" ] [
-                p [ class "info" ] [ text ("Score: " ++ (toString score)) ],
-                p [ class "info" ] [ text ("Level: " ++ (toString level)) ]
-               ],
-           div [ id (if not start then "opacity" else "") ] [ mainDisplay currentPos pile ],
-           div [ id "controls" ] [
-                div [ class "rotate" ] [ p [] [ text "r" ],
-                                         p [] [ text "Rotate" ] ],
-                p []
-                    [ leftArr, span [ id "left" ] [ text "Left" ],
-                      span [ id "right" ] [ text "Right", rightArr ] ],
-                div [ class "down" ] [ p [] [ text "Down" ] ,
-                                       p [] [ text "space" ] ],
-                div [ class "down" ] [ p [] [ text "Pause" ],
-                         p [] [ text "p" ] ] ]
-        ]
+    let leftArr = span [ class "left", property "innerHTML" (string "&larr;") ] []
+        rightArr = span [ id "rarr", property "innerHTML" (string "&rarr;") ] []
+    in
+        div [ id "main" ]
+            [  h2 [] [ text "Tetris" ],
+                   if not start
+                   then p [ id "starting" ] [ text "Press Space to start the Game" ]
+                   else text "",
+                   div [ id "gameInfo" ] [
+                        p [ class "info" ] [ text ("Score: " ++ (toString score)) ],
+                            p [ class "info" ] [ text ("Level: " ++ (toString level)) ]
+                       ],
+                   div [ id (if not start then "opacity" else "") ] [ mainDisplay currentPos pile ],
+                   div [ id "controls" ] [
+                        div [ class "rotate" ] [ p [] [ text "r" ],
+                                                     p [] [ text "Rotate" ] ],
+                            p []
+                            [ leftArr, span [ id "left" ] [ text "Left" ],
+                                  span [ id "right" ] [ text "Right", rightArr ] ],
+                            div [ class "down" ] [ p [] [ text "Down" ] ,
+                                                       p [] [ text "space" ] ],
+                            div [ class "down" ] [ p [] [ text "Pause" ],
+                                                       p [] [ text "p" ] ] ]
+            ]
 
-leftArr = span [ class "left", property "innerHTML" (string "&larr;") ] []
-rightArr = span [ id "rarr", property "innerHTML" (string "&rarr;") ] []

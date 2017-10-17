@@ -1,23 +1,35 @@
 module Display exposing (mainDisplay, initialPile)
 
-import Html exposing (table, tr, td)
+import Html exposing (Html, table, tr, td)
 import Html.Attributes exposing (style)
 
+import Types exposing (..)
+
+mainDisplay : Rotation -> Pile -> Html Msg
 mainDisplay position pile =
     let pos = position ++ (List.filter (\(c, r) -> r /= 0) pile)
     in table [] (List.map (makeRows pos) trList)
 
+
+makeRows : Rotation -> Int -> Html Msg
 makeRows pos row =
     tr [] (List.map (makeCell pos row) tdList)
 
+
+makeCell : Rotation -> Int -> Int -> Html Msg
 makeCell pos row col =
     if List.any (\(c, r) -> r == row && c == col) pos
     then td [ style [("background-color", "#a6a6a6")] ] []
     else td [] []
-                                         
+
+
+trList : List Int
 trList = [20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+tdList : List Int
 tdList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
+
+initialPile : Pile
 initialPile =
     [(1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0), (9, 0), (10, 0), 
      (0, 1), (0, 2), (0, 3), (0, 4), (0, 5),
