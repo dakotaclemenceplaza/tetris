@@ -1,5 +1,5 @@
-import Html exposing (Html, program, div, h2, p, text, span)
-import Html.Attributes exposing (id, class, property)
+import Html exposing (Html, program, div, h2, p, text, span, a)
+import Html.Attributes exposing (id, class, property, href)
 import Json.Encode exposing (string)
 import Time exposing (second, millisecond, every)
 import Random exposing (generate, int)
@@ -25,7 +25,8 @@ model =
       level = 1,
       nextLevel = 0,
       score = 0,
-      btbTetris = False
+      btbTetris = False,
+      over = False
     }
            
 init = (model, Cmd.none)
@@ -33,7 +34,7 @@ init = (model, Cmd.none)
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch [downs Key,
-               if model.pause || not model.start
+               if model.pause || not model.start || model.over
                then Sub.none
                else if model.down
                     then every (10 * millisecond) Tick
@@ -46,18 +47,17 @@ update msg model =
         (col, row) = model.position
     in
     case msg of
-        Tick _ ->
-            case upd { model | position = (col, row - 1) } of
-                Just newModel -> (newModel, Cmd.none)
-                Nothing -> let (newPile, addScore, next) =
-                                   destroyRows (model.currentPos ++ model.pile) 1 0 (model.level + 1) model.nextLevel
-                           in ({ model | pile = newPile,
-                                     position = (5, 20),
-                                     score = model.score + addScore,
-                                     nextLevel = next,
-                                     level = next // 10 + 1,
-                                     down = if model.down then False else model.down },
-                                generate RandomFig (int 1 7))
+        Tick _ -> case upd { model | position = (col, row - 1) } of
+                      Just newModel -> (newModel, Cmd.none)
+                      Nothing -> let (newPile, addScore, next) =
+                                         destroyRows (model.currentPos ++ model.pile) 1 0 (model.level + 1) model.nextLevel
+                                 in ({ model | pile = newPile,
+                                           position = (5, 20),
+                                           score = model.score + addScore,
+                                           nextLevel = next,
+                                           level = next // 10 + 1,
+                                           down = if model.down then False else model.down },
+                                         generate RandomFig (int 1 7))
                   
         RandomFig rand ->
             case get rand randomFigure of
@@ -65,8 +65,9 @@ update msg model =
                                  generate RandomRot (int 0 (size fig - 1)))
                 Nothing -> (model, Cmd.none)
 
-        RandomRot rot ->
-            (Maybe.withDefault model (upd { model | rotation = rot }), Cmd.none)
+        RandomRot rot -> case upd { model | rotation = rot } of
+                             Just newModel -> (newModel, Cmd.none)
+                             Nothing -> ({ model | over = True }, Cmd.none)
 
         Key code ->
             case code of
@@ -96,7 +97,7 @@ update msg model =
 
                      
 view : Model -> Html Msg
-view { currentPos, position, pile, start, level, score } =
+view { currentPos, position, pile, start, level, score, over } =
     let leftArr = span [ class "left", property "innerHTML" (string "&larr;") ] []
         rightArr = span [ id "rarr", property "innerHTML" (string "&rarr;") ] []
     in
@@ -104,12 +105,14 @@ view { currentPos, position, pile, start, level, score } =
             [  h2 [] [ text "Tetris" ],
                    if not start
                    then p [ id "starting" ] [ text "Press Space to start the Game" ]
-                   else text "",
+                   else if over
+                        then p [ id "starting" ] [ text "Game Over" ]
+                        else text "",
                    div [ id "gameInfo" ] [
                         p [ class "info" ] [ text ("Score: " ++ (toString score)) ],
                         p [ class "info" ] [ text ("Level: " ++ (toString level)) ]
                        ],
-                   div [ id (if not start then "opacity" else "") ] [ mainDisplay currentPos pile ],
+                   div [ id (if not start || over then "opacity" else "") ] [ mainDisplay currentPos pile ],
                    div [ id "controls" ] [
                         div [ class "rotate" ] [ p [] [ text "r" ],
                                                      p [] [ text "Rotate" ] ],
@@ -119,6 +122,9 @@ view { currentPos, position, pile, start, level, score } =
                             div [ class "down" ] [ p [] [ text "Down" ] ,
                                                        p [] [ text "space" ] ],
                             div [ class "down" ] [ p [] [ text "Pause" ],
-                                                       p [] [ text "p" ] ] ]
+                                                       p [] [ text "p" ] ] ],
+                   div [ id "elm" ]
+                       [ p [] [ text "Written in " ,
+                                a [ href "http://elm-lang.org/" ] [ text "Elm" ] ] ]
             ]
 

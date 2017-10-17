@@ -30,5 +30,6 @@ type alias Model =
       level : Level,
       nextLevel : Int,
       score : Score,
-      btbTetris : Bool
+      btbTetris : Bool,
+      over : Bool
     }

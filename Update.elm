@@ -5,9 +5,9 @@ import Dict exposing (get)
 
 upd : Model -> Maybe Model
 upd model =
-    let nextRotation = get model.rotation model.figure
+    let rotation = get model.rotation model.figure
         (col, row) = model.position
-    in Maybe.map (List.map (\(c, r) -> (col + c, row + r))) nextRotation
+    in Maybe.map (List.map (\(c, r) -> (col + c, row + r))) rotation
         |> Maybe.andThen (notPile model.pile)
         |> Maybe.andThen (\newPos -> Just { model | currentPos = newPos })
 
