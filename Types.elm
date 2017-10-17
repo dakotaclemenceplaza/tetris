@@ -28,6 +28,7 @@ type alias Model =
       down : Bool,
       start : Bool,
       level : Level,
+      nextLevel : Int,
       score : Score,
       btbTetris : Bool
     }

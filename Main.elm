@@ -22,7 +22,8 @@ model =
       pause = False,
       down = False,
       start = False,
-      level = 0,
+      level = 1,
+      nextLevel = 0,
       score = 0,
       btbTetris = False
     }
@@ -36,7 +37,7 @@ subscriptions model =
                then Sub.none
                else if model.down
                     then every (10 * millisecond) Tick
-                    else every second Tick]
+                    else every (second / (toFloat (model.nextLevel // 10 + 1))) Tick]
 
         
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -48,11 +49,13 @@ update msg model =
         Tick _ ->
             case upd { model | position = (col, row - 1) } of
                 Just newModel -> (newModel, Cmd.none)
-                Nothing -> let (newPile, addScore) =
-                                   destroyRows (model.currentPos ++ model.pile) 1 0 (model.level + 1)
+                Nothing -> let (newPile, addScore, next) =
+                                   destroyRows (model.currentPos ++ model.pile) 1 0 (model.level + 1) model.nextLevel
                            in ({ model | pile = newPile,
                                      position = (5, 20),
                                      score = model.score + addScore,
+                                     nextLevel = next,
+                                     level = next // 10 + 1,
                                      down = if model.down then False else model.down },
                                 generate RandomFig (int 1 7))
                   
@@ -67,21 +70,33 @@ update msg model =
 
         Key code ->
             case code of
-                32 -> ({ model | down = not model.down }, Cmd.none)
-                80 -> ({ model | pause = not model.pause }, Cmd.none)
-                82 -> (Maybe.withDefault model
-                           (upd { model | rotation = 
-                                      (rot + 1) % (size model.figure) }) , Cmd.none)
-                37 -> (Maybe.withDefault model (upd ({ model | position =
-                                                      (col - 1, row) })), Cmd.none)
-                39 -> (Maybe.withDefault model (upd ({ model | position =
-                                                      (col + 1, row) })), Cmd.none)
-                83 -> ({ model | start = not model.start }, generate RandomFig (int 1 7))
+                32 -> if not model.start then
+                          ({ model | start = True },
+                               generate RandomFig (int 1 7))
+                      else if not model.pause then
+                               ({ model | down = not model.down }, Cmd.none)
+                           else (model, Cmd.none)
+                80 -> if model.start then
+                          ({ model | pause = not model.pause }, Cmd.none)
+                      else (model, Cmd.none)
+                82 -> if not model.pause then
+                          (Maybe.withDefault model
+                               (upd { model | rotation = 
+                                          (rot + 1) % (size model.figure) }) , Cmd.none)
+                      else (model, Cmd.none)
+                37 -> if not model.pause then
+                          (Maybe.withDefault model (upd ({ model | position =
+                                                               (col - 1, row) })), Cmd.none)
+                      else (model, Cmd.none)
+                39 -> if not model.pause then
+                          (Maybe.withDefault model (upd ({ model | position =
+                                                               (col + 1, row) })), Cmd.none)
+                      else (model, Cmd.none)
                 _ -> (model, Cmd.none)
 
                      
 view : Model -> Html Msg
-view { currentPos, pile, start, level, score } =
+view { currentPos, position, pile, start, level, score } =
     let leftArr = span [ class "left", property "innerHTML" (string "&larr;") ] []
         rightArr = span [ id "rarr", property "innerHTML" (string "&rarr;") ] []
     in
@@ -92,7 +107,7 @@ view { currentPos, pile, start, level, score } =
                    else text "",
                    div [ id "gameInfo" ] [
                         p [ class "info" ] [ text ("Score: " ++ (toString score)) ],
-                            p [ class "info" ] [ text ("Level: " ++ (toString level)) ]
+                        p [ class "info" ] [ text ("Level: " ++ (toString level)) ]
                        ],
                    div [ id (if not start then "opacity" else "") ] [ mainDisplay currentPos pile ],
                    div [ id "controls" ] [
