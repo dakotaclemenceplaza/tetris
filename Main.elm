@@ -21,7 +21,9 @@ type alias Model =
       pile : Pile,
       pause : Bool,
       down : Bool,
-      start : Bool
+      start : Bool,
+      level : Int,
+      score : Int
     }
 
 model =
@@ -32,7 +34,9 @@ model =
       pile = initialPile,
       pause = False,
       down = False,
-      start = False
+      start = False,
+      level = 0,
+      score = 0
     }
            
 init = (model, Cmd.none)
@@ -55,10 +59,12 @@ update msg model =
         Tick _ ->
             case upd { model | position = (col, row - 1) } of
                 Just newModel -> (newModel, Cmd.none)
-                Nothing -> ({ model | pile =
-                                  destroyRow (model.currentPos ++ model.pile) 1,
-                                  position = (5, 20),
-                                  down = if model.down then False else model.down },
+                Nothing -> let (newPile, addScore) =
+                                   destroyRow (model.currentPos ++ model.pile) 1 0 model.level
+                           in ({ model | pile = newPile,
+                                     position = (5, 20),
+                                     score = model.score + addScore,
+                                     down = if model.down then False else model.down },
                                 generate RandomFig (int 1 7))
                   
         RandomFig rand ->
@@ -85,21 +91,27 @@ update msg model =
                 _ -> (model, Cmd.none)
 
 view : Model -> Html msg
-view { currentPos, pile, start } =
+view { currentPos, pile, start, level, score } =
     div [ id "main" ]
         [  h2 [] [ text "Tetris" ],
            if not start
            then p [ id "starting" ] [ text "Press Space to start the Game" ]
            else text "",
+           div [ id "gameInfo" ] [
+                p [ class "info" ] [ text ("Score: " ++ (toString score)) ],
+                p [ class "info" ] [ text ("Level: " ++ (toString level)) ]
+               ],
            div [ id (if not start then "opacity" else "") ] [ mainDisplay currentPos pile ],
            div [ id "controls" ] [
                 div [ class "rotate" ] [ p [] [ text "r" ],
-                                         p [] [ text "rotate" ] ],
+                                         p [] [ text "Rotate" ] ],
                 p []
-                    [ leftArr, span [ id "left" ] [ text "left" ],
-                      span [ id "right" ] [ text "right", rightArr ] ],
-                div [ class "down" ] [ p [] [ text "down" ] ,
-                                       p [ property "innerHTML" (string "&darr;") ] [] ] ]
+                    [ leftArr, span [ id "left" ] [ text "Left" ],
+                      span [ id "right" ] [ text "Right", rightArr ] ],
+                div [ class "down" ] [ p [] [ text "Down" ] ,
+                                       p [] [ text "space" ] ],
+                div [ class "down" ] [ p [] [ text "Pause" ],
+                         p [] [ text "p" ] ] ]
         ]
 
 leftArr = span [ class "left", property "innerHTML" (string "&larr;") ] []
