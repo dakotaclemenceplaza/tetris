@@ -9306,11 +9306,7 @@ var _user$project$Types$Model = function (a) {
 								return function (i) {
 									return function (j) {
 										return function (k) {
-											return function (l) {
-												return function (m) {
-													return {figure: a, rotation: b, currentPos: c, position: d, pile: e, pause: f, down: g, start: h, level: i, nextLevel: j, score: k, btbTetris: l, over: m};
-												};
-											};
+											return {figure: a, rotation: b, currentPos: c, position: d, pile: e, down: f, level: g, nextLevel: h, score: i, btbTetris: j, gameState: k};
 										};
 									};
 								};
@@ -9334,6 +9330,10 @@ var _user$project$Types$RandomFig = function (a) {
 var _user$project$Types$Tick = function (a) {
 	return {ctor: 'Tick', _0: a};
 };
+var _user$project$Types$Over = {ctor: 'Over'};
+var _user$project$Types$Pause = {ctor: 'Pause'};
+var _user$project$Types$Play = {ctor: 'Play'};
+var _user$project$Types$Start = {ctor: 'Start'};
 
 var _user$project$Display$initialPile = {
 	ctor: '::',
@@ -10364,8 +10364,7 @@ var _user$project$Update$upd = function (model) {
 
 var _user$project$Main$view = function (_p0) {
 	var _p1 = _p0;
-	var _p3 = _p1.start;
-	var _p2 = _p1.over;
+	var _p2 = _p1.gameState;
 	var rightArr = A2(
 		_elm_lang$html$Html$span,
 		{
@@ -10415,7 +10414,7 @@ var _user$project$Main$view = function (_p0) {
 				}),
 			_1: {
 				ctor: '::',
-				_0: (!_p3) ? A2(
+				_0: _elm_lang$core$Native_Utils.eq(_p2, _user$project$Types$Start) ? A2(
 					_elm_lang$html$Html$p,
 					{
 						ctor: '::',
@@ -10426,7 +10425,7 @@ var _user$project$Main$view = function (_p0) {
 						ctor: '::',
 						_0: _elm_lang$html$Html$text('Press Space to start the Game'),
 						_1: {ctor: '[]'}
-					}) : (_p2 ? A2(
+					}) : (_elm_lang$core$Native_Utils.eq(_p2, _user$project$Types$Over) ? A2(
 					_elm_lang$html$Html$p,
 					{
 						ctor: '::',
@@ -10493,7 +10492,7 @@ var _user$project$Main$view = function (_p0) {
 							{
 								ctor: '::',
 								_0: _elm_lang$html$Html_Attributes$id(
-									((!_p3) || _p2) ? 'opacity' : ''),
+									(_elm_lang$core$Native_Utils.eq(_p2, _user$project$Types$Start) || _elm_lang$core$Native_Utils.eq(_p2, _user$project$Types$Over)) ? 'opacity' : ''),
 								_1: {ctor: '[]'}
 							},
 							{
@@ -10701,32 +10700,33 @@ var _user$project$Main$view = function (_p0) {
 };
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p4 = model.position;
-		var col = _p4._0;
-		var row = _p4._1;
+		var gameState = model.gameState;
+		var _p3 = model.position;
+		var col = _p3._0;
+		var row = _p3._1;
 		var rot = model.rotation;
-		var _p5 = msg;
-		switch (_p5.ctor) {
+		var _p4 = msg;
+		switch (_p4.ctor) {
 			case 'Tick':
-				var _p6 = _user$project$Update$upd(
+				var _p5 = _user$project$Update$upd(
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{
 							position: {ctor: '_Tuple2', _0: col, _1: row - 1}
 						}));
-				if (_p6.ctor === 'Just') {
-					return {ctor: '_Tuple2', _0: _p6._0, _1: _elm_lang$core$Platform_Cmd$none};
+				if (_p5.ctor === 'Just') {
+					return {ctor: '_Tuple2', _0: _p5._0, _1: _elm_lang$core$Platform_Cmd$none};
 				} else {
-					var _p7 = A5(
+					var _p6 = A5(
 						_user$project$Update$destroyRows,
 						A2(_elm_lang$core$Basics_ops['++'], model.currentPos, model.pile),
 						1,
 						0,
-						model.level + 1,
+						model.level,
 						model.nextLevel);
-					var newPile = _p7._0;
-					var addScore = _p7._1;
-					var next = _p7._2;
+					var newPile = _p6._0;
+					var addScore = _p6._1;
+					var next = _p6._2;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -10746,55 +10746,55 @@ var _user$project$Main$update = F2(
 					};
 				}
 			case 'RandomFig':
-				var _p8 = A2(_elm_lang$core$Dict$get, _p5._0, _user$project$Figures$randomFigure);
-				if (_p8.ctor === 'Just') {
-					var _p9 = _p8._0;
+				var _p7 = A2(_elm_lang$core$Dict$get, _p4._0, _user$project$Figures$randomFigure);
+				if (_p7.ctor === 'Just') {
+					var _p8 = _p7._0;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{figure: _p9}),
+							{figure: _p8}),
 						_1: A2(
 							_elm_lang$core$Random$generate,
 							_user$project$Types$RandomRot,
 							A2(
 								_elm_lang$core$Random$int,
 								0,
-								_elm_lang$core$Dict$size(_p9) - 1))
+								_elm_lang$core$Dict$size(_p8) - 1))
 					};
 				} else {
 					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
 			case 'RandomRot':
-				var _p10 = _user$project$Update$upd(
+				var _p9 = _user$project$Update$upd(
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{rotation: _p5._0}));
-				if (_p10.ctor === 'Just') {
-					return {ctor: '_Tuple2', _0: _p10._0, _1: _elm_lang$core$Platform_Cmd$none};
+						{rotation: _p4._0}));
+				if (_p9.ctor === 'Just') {
+					return {ctor: '_Tuple2', _0: _p9._0, _1: _elm_lang$core$Platform_Cmd$none};
 				} else {
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{over: true}),
+							{gameState: _user$project$Types$Over}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
 			default:
-				var _p11 = _p5._0;
-				switch (_p11) {
+				var _p10 = _p4._0;
+				switch (_p10) {
 					case 32:
-						return (!model.start) ? {
+						return _elm_lang$core$Native_Utils.eq(gameState, _user$project$Types$Start) ? {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
 								model,
-								{start: true}),
+								{gameState: _user$project$Types$Play}),
 							_1: A2(
 								_elm_lang$core$Random$generate,
 								_user$project$Types$RandomFig,
 								A2(_elm_lang$core$Random$int, 1, 7))
-						} : ((!model.pause) ? {
+						} : (_elm_lang$core$Native_Utils.eq(gameState, _user$project$Types$Play) ? {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
 								model,
@@ -10802,15 +10802,21 @@ var _user$project$Main$update = F2(
 							_1: _elm_lang$core$Platform_Cmd$none
 						} : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none});
 					case 80:
-						return model.start ? {
+						return _elm_lang$core$Native_Utils.eq(gameState, _user$project$Types$Play) ? {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
 								model,
-								{pause: !model.pause}),
+								{gameState: _user$project$Types$Pause}),
 							_1: _elm_lang$core$Platform_Cmd$none
-						} : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+						} : (_elm_lang$core$Native_Utils.eq(gameState, _user$project$Types$Pause) ? {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{gameState: _user$project$Types$Play}),
+							_1: _elm_lang$core$Platform_Cmd$none
+						} : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none});
 					case 82:
-						return (!model.pause) ? {
+						return _elm_lang$core$Native_Utils.eq(gameState, _user$project$Types$Play) ? {
 							ctor: '_Tuple2',
 							_0: A2(
 								_elm_lang$core$Maybe$withDefault,
@@ -10827,7 +10833,7 @@ var _user$project$Main$update = F2(
 							_1: _elm_lang$core$Platform_Cmd$none
 						} : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 					case 37:
-						return (!model.pause) ? {
+						return _elm_lang$core$Native_Utils.eq(gameState, _user$project$Types$Play) ? {
 							ctor: '_Tuple2',
 							_0: A2(
 								_elm_lang$core$Maybe$withDefault,
@@ -10841,7 +10847,7 @@ var _user$project$Main$update = F2(
 							_1: _elm_lang$core$Platform_Cmd$none
 						} : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 					case 39:
-						return (!model.pause) ? {
+						return _elm_lang$core$Native_Utils.eq(gameState, _user$project$Types$Play) ? {
 							ctor: '_Tuple2',
 							_0: A2(
 								_elm_lang$core$Maybe$withDefault,
@@ -10859,17 +10865,18 @@ var _user$project$Main$update = F2(
 				}
 		}
 	});
-var _user$project$Main$subscriptions = function (model) {
+var _user$project$Main$subscriptions = function (_p11) {
+	var _p12 = _p11;
 	return _elm_lang$core$Platform_Sub$batch(
 		{
 			ctor: '::',
 			_0: _elm_lang$keyboard$Keyboard$downs(_user$project$Types$Key),
 			_1: {
 				ctor: '::',
-				_0: (model.pause || ((!model.start) || model.over)) ? _elm_lang$core$Platform_Sub$none : (model.down ? A2(_elm_lang$core$Time$every, 10 * _elm_lang$core$Time$millisecond, _user$project$Types$Tick) : A2(
+				_0: _elm_lang$core$Native_Utils.eq(_p12.gameState, _user$project$Types$Play) ? (_p12.down ? A2(_elm_lang$core$Time$every, 10 * _elm_lang$core$Time$millisecond, _user$project$Types$Tick) : A2(
 					_elm_lang$core$Time$every,
-					_elm_lang$core$Time$second / _elm_lang$core$Basics$toFloat(((model.nextLevel / 10) | 0) + 1),
-					_user$project$Types$Tick)),
+					_elm_lang$core$Time$second / _elm_lang$core$Basics$toFloat(((_p12.nextLevel / 10) | 0) + 1),
+					_user$project$Types$Tick)) : _elm_lang$core$Platform_Sub$none,
 				_1: {ctor: '[]'}
 			}
 		});
@@ -10889,14 +10896,12 @@ var _user$project$Main$model = {
 	currentPos: {ctor: '[]'},
 	position: {ctor: '_Tuple2', _0: 5, _1: 20},
 	pile: _user$project$Display$initialPile,
-	pause: false,
 	down: false,
-	start: false,
 	level: 1,
 	nextLevel: 0,
 	score: 0,
 	btbTetris: false,
-	over: false
+	gameState: _user$project$Types$Start
 };
 var _user$project$Main$init = {ctor: '_Tuple2', _0: _user$project$Main$model, _1: _elm_lang$core$Platform_Cmd$none};
 var _user$project$Main$main = _elm_lang$html$Html$program(
