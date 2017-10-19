@@ -48,7 +48,7 @@ update msg model =
         Tick _ -> case upd { model | position = (col, row - 1) } of
                       Just newModel -> (newModel, Cmd.none)
                       Nothing -> let (newPile, addScore, next) =
-                                         destroyRows (model.currentPos ++ model.pile) 1 0 (model.level + 1) model.nextLevel
+                                         destroyRows (model.currentPos ++ model.pile) 1 0 model.level model.nextLevel
                                  in ({ model | pile = newPile,
                                            position = (5, 20),
                                            score = model.score + addScore,
