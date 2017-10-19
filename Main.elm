@@ -19,32 +19,30 @@ model =
       currentPos = [],
       position = (5, 20),
       pile = initialPile,
-      pause = False,
       down = False,
-      start = False,
       level = 1,
       nextLevel = 0,
       score = 0,
       btbTetris = False,
-      over = False
+      gameState = Start
     }
            
 init = (model, Cmd.none)
        
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions { down, nextLevel, gameState } =
     Sub.batch [downs Key,
-               if model.pause || not model.start || model.over
-               then Sub.none
-               else if model.down
+               if gameState == Play
+               then if down
                     then every (10 * millisecond) Tick
-                    else every (second / (toFloat (model.nextLevel // 10 + 1))) Tick]
-
+                    else every (second / (toFloat (nextLevel // 10 + 1))) Tick
+               else Sub.none]
         
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     let rot = model.rotation
         (col, row) = model.position
+        gameState = model.gameState
     in
     case msg of
         Tick _ -> case upd { model | position = (col, row - 1) } of
@@ -67,29 +65,31 @@ update msg model =
 
         RandomRot rot -> case upd { model | rotation = rot } of
                              Just newModel -> (newModel, Cmd.none)
-                             Nothing -> ({ model | over = True }, Cmd.none)
+                             Nothing -> ({ model | gameState = Over }, Cmd.none)
 
         Key code ->
             case code of
-                32 -> if not model.start then
-                          ({ model | start = True },
+                32 -> if gameState == Start then
+                          ({ model | gameState = Play },
                                generate RandomFig (int 1 7))
-                      else if not model.pause then
+                      else if gameState == Play then
                                ({ model | down = not model.down }, Cmd.none)
                            else (model, Cmd.none)
-                80 -> if model.start then
-                          ({ model | pause = not model.pause }, Cmd.none)
-                      else (model, Cmd.none)
-                82 -> if not model.pause then
+                80 -> if gameState == Play then
+                          ({ model | gameState = Pause }, Cmd.none)
+                      else if gameState == Pause then
+                               ({ model | gameState = Play }, Cmd.none)
+                           else (model, Cmd.none)
+                82 -> if gameState == Play then
                           (Maybe.withDefault model
                                (upd { model | rotation = 
                                           (rot + 1) % (size model.figure) }) , Cmd.none)
                       else (model, Cmd.none)
-                37 -> if not model.pause then
+                37 -> if gameState == Play then
                           (Maybe.withDefault model (upd ({ model | position =
                                                                (col - 1, row) })), Cmd.none)
                       else (model, Cmd.none)
-                39 -> if not model.pause then
+                39 -> if gameState == Play then
                           (Maybe.withDefault model (upd ({ model | position =
                                                                (col + 1, row) })), Cmd.none)
                       else (model, Cmd.none)
@@ -97,22 +97,24 @@ update msg model =
 
                      
 view : Model -> Html Msg
-view { currentPos, position, pile, start, level, score, over } =
+view { currentPos, position, pile, level, score, gameState } =
     let leftArr = span [ class "left", property "innerHTML" (string "&larr;") ] []
         rightArr = span [ id "rarr", property "innerHTML" (string "&rarr;") ] []
     in
         div [ id "main" ]
             [  h2 [] [ text "Tetris" ],
-                   if not start
+                   if gameState == Start
                    then p [ id "starting" ] [ text "Press Space to start the Game" ]
-                   else if over
+                   else if gameState == Over
                         then p [ id "starting" ] [ text "Game Over" ]
                         else text "",
                    div [ id "gameInfo" ] [
                         p [ class "info" ] [ text ("Score: " ++ (toString score)) ],
                         p [ class "info" ] [ text ("Level: " ++ (toString level)) ]
                        ],
-                   div [ id (if not start || over then "opacity" else "") ] [ mainDisplay currentPos pile ],
+                   div [ id (if gameState == Start || gameState == Over
+                             then "opacity"
+                             else "") ] [ mainDisplay currentPos pile ],
                    div [ id "controls" ] [
                         div [ class "rotate" ] [ p [] [ text "r" ],
                                                      p [] [ text "Rotate" ] ],

@@ -9,6 +9,8 @@ type Msg = Tick Time
          | RandomRot Int
          | Key KeyCode
 
+type GameState = Start | Play | Pause | Over
+           
 type alias Position = (Int, Int)    
 type alias Pile = List Position
 type alias Rotation = List Position
@@ -24,12 +26,10 @@ type alias Model =
       currentPos : Rotation,
       position : Position,
       pile : Pile,
-      pause : Bool,
       down : Bool,
-      start : Bool,
       level : Level,
       nextLevel : Int,
       score : Score,
       btbTetris : Bool,
-      over : Bool
+      gameState : GameState
     }
