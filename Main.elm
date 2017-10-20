@@ -21,41 +21,40 @@ model =
       pile = initialPile,
       down = False,
       level = 1,
-      nextLevel = 0,
+      lines = 0,
       score = 0,
-      btbTetris = False,
       gameState = Start
     }
            
 init = (model, Cmd.none)
        
 subscriptions : Model -> Sub Msg
-subscriptions { down, nextLevel, gameState } =
+subscriptions { down, lines, gameState } =
     Sub.batch [downs Key,
                if gameState == Play
                then if down
                     then every (10 * millisecond) Tick
-                    else every (second / (toFloat (nextLevel // 10 + 1))) Tick
+                    else every (second / (toFloat (lines // 10 + 1))) Tick
                else Sub.none]
         
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-    let rot = model.rotation
-        (col, row) = model.position
+    let (col, row) = model.position
         gameState = model.gameState
     in
     case msg of
-        Tick _ -> case upd { model | position = (col, row - 1) } of
-                      Just newModel -> (newModel, Cmd.none)
-                      Nothing -> let (newPile, addScore, next) =
-                                         destroyRows (model.currentPos ++ model.pile) 1 0 model.level model.nextLevel
-                                 in ({ model | pile = newPile,
-                                           position = (5, 20),
-                                           score = model.score + addScore,
-                                           nextLevel = next,
-                                           level = next // 10 + 1,
-                                           down = if model.down then False else model.down },
-                                         generate RandomFig (int 1 7))
+        Tick _ ->
+            case upd { model | position = (col, row - 1) } of
+                Just newModel -> (newModel, Cmd.none)
+                Nothing -> let (newPile, addScore, newLines) =
+                                   destroyRows (model.currentPos ++ model.pile) 1 0 model.level model.lines
+                           in ({ model | pile = newPile,
+                                     position = (5, 20),
+                                     score = model.score + addScore,
+                                     lines = newLines,
+                                     level = newLines // 10 + 1,
+                                     down = if model.down then False else model.down },
+                                   generate RandomFig (int 1 7))
                   
         RandomFig rand ->
             case get rand randomFigure of
@@ -63,9 +62,9 @@ update msg model =
                                  generate RandomRot (int 0 (size fig - 1)))
                 Nothing -> (model, Cmd.none)
 
-        RandomRot rot -> case upd { model | rotation = rot } of
-                             Just newModel -> (newModel, Cmd.none)
-                             Nothing -> ({ model | gameState = Over }, Cmd.none)
+        RandomRot rot ->
+            (Maybe.withDefault { model | gameState = Over }
+                 (upd { model | rotation = rot }), Cmd.none)
 
         Key code ->
             case code of
@@ -83,7 +82,7 @@ update msg model =
                 82 -> if gameState == Play then
                           (Maybe.withDefault model
                                (upd { model | rotation = 
-                                          (rot + 1) % (size model.figure) }) , Cmd.none)
+                                          (model.rotation + 1) % (size model.figure) }) , Cmd.none)
                       else (model, Cmd.none)
                 37 -> if gameState == Play then
                           (Maybe.withDefault model (upd ({ model | position =
@@ -97,7 +96,7 @@ update msg model =
 
                      
 view : Model -> Html Msg
-view { currentPos, position, pile, level, score, gameState } =
+view { currentPos, pile, level, score, gameState } =
     let leftArr = span [ class "left", property "innerHTML" (string "&larr;") ] []
         rightArr = span [ id "rarr", property "innerHTML" (string "&rarr;") ] []
     in
@@ -129,4 +128,3 @@ view { currentPos, position, pile, level, score, gameState } =
                        [ p [] [ text "Written in " ,
                                 a [ href "http://elm-lang.org/" ] [ text "Elm" ] ] ]
             ]
-

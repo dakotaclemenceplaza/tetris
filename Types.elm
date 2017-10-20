@@ -19,7 +19,8 @@ type alias Figure = Dict Int Rotation
 
 type alias Level = Int
 type alias Score = Int
-    
+type alias Lines = Int
+        
 type alias Model =
     { figure : Figure,
       rotation : Int,
@@ -28,8 +29,7 @@ type alias Model =
       pile : Pile,
       down : Bool,
       level : Level,
-      nextLevel : Int,
+      lines : Lines,
       score : Score,
-      btbTetris : Bool,
       gameState : GameState
     }

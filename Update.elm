@@ -19,13 +19,13 @@ notPile pile pos =
     else Nothing
 
 
-destroyRows : Pile -> Int -> Score -> Level -> Int -> (Pile, Score, Int)        
-destroyRows pile currentRow score level nextLevel =
+destroyRows : Pile -> Int -> Score -> Level -> Lines -> (Pile, Score, Lines)        
+destroyRows pile currentRow score level lines =
     if currentRow < 21
     then if List.length (List.filter (\(c, r) -> r == currentRow) pile) == 12
-         then destroyRows (destroy pile 0) currentRow (updateScore score level) level (nextLevel + 1)
-         else destroyRows pile (currentRow + 1) score level nextLevel
-    else (pile, score, nextLevel)
+         then destroyRows (destroy pile 0) currentRow (updateScore score level) level (lines + 1)
+         else destroyRows pile (currentRow + 1) score level lines
+    else (pile, score, lines)
 
 
 destroy : Pile -> Int -> Pile        
