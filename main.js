@@ -9305,9 +9305,7 @@ var _user$project$Types$Model = function (a) {
 							return function (h) {
 								return function (i) {
 									return function (j) {
-										return function (k) {
-											return {figure: a, rotation: b, currentPos: c, position: d, pile: e, down: f, level: g, nextLevel: h, score: i, btbTetris: j, gameState: k};
-										};
+										return {figure: a, rotation: b, currentPos: c, position: d, pile: e, down: f, level: g, lines: h, score: i, gameState: j};
 									};
 								};
 							};
@@ -10277,7 +10275,7 @@ var _user$project$Update$destroy = F2(
 		}
 	});
 var _user$project$Update$destroyRows = F5(
-	function (pile, currentRow, score, level, nextLevel) {
+	function (pile, currentRow, score, level, lines) {
 		destroyRows:
 		while (true) {
 			if (_elm_lang$core$Native_Utils.cmp(currentRow, 21) < 0) {
@@ -10295,28 +10293,28 @@ var _user$project$Update$destroyRows = F5(
 						_v5 = currentRow,
 						_v6 = A2(_user$project$Update$updateScore, score, level),
 						_v7 = level,
-						_v8 = nextLevel + 1;
+						_v8 = lines + 1;
 					pile = _v4;
 					currentRow = _v5;
 					score = _v6;
 					level = _v7;
-					nextLevel = _v8;
+					lines = _v8;
 					continue destroyRows;
 				} else {
 					var _v9 = pile,
 						_v10 = currentRow + 1,
 						_v11 = score,
 						_v12 = level,
-						_v13 = nextLevel;
+						_v13 = lines;
 					pile = _v9;
 					currentRow = _v10;
 					score = _v11;
 					level = _v12;
-					nextLevel = _v13;
+					lines = _v13;
 					continue destroyRows;
 				}
 			} else {
-				return {ctor: '_Tuple3', _0: pile, _1: score, _2: nextLevel};
+				return {ctor: '_Tuple3', _0: pile, _1: score, _2: lines};
 			}
 		}
 	});
@@ -10704,7 +10702,6 @@ var _user$project$Main$update = F2(
 		var _p3 = model.position;
 		var col = _p3._0;
 		var row = _p3._1;
-		var rot = model.rotation;
 		var _p4 = msg;
 		switch (_p4.ctor) {
 			case 'Tick':
@@ -10723,10 +10720,10 @@ var _user$project$Main$update = F2(
 						1,
 						0,
 						model.level,
-						model.nextLevel);
+						model.lines);
 					var newPile = _p6._0;
 					var addScore = _p6._1;
-					var next = _p6._2;
+					var newLines = _p6._2;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -10735,8 +10732,8 @@ var _user$project$Main$update = F2(
 								pile: newPile,
 								position: {ctor: '_Tuple2', _0: 5, _1: 20},
 								score: model.score + addScore,
-								nextLevel: next,
-								level: ((next / 10) | 0) + 1,
+								lines: newLines,
+								level: ((newLines / 10) | 0) + 1,
 								down: model.down ? false : model.down
 							}),
 						_1: A2(
@@ -10766,24 +10763,22 @@ var _user$project$Main$update = F2(
 					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
 			case 'RandomRot':
-				var _p9 = _user$project$Update$upd(
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{rotation: _p4._0}));
-				if (_p9.ctor === 'Just') {
-					return {ctor: '_Tuple2', _0: _p9._0, _1: _elm_lang$core$Platform_Cmd$none};
-				} else {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
+				return {
+					ctor: '_Tuple2',
+					_0: A2(
+						_elm_lang$core$Maybe$withDefault,
+						_elm_lang$core$Native_Utils.update(
 							model,
 							{gameState: _user$project$Types$Over}),
-						_1: _elm_lang$core$Platform_Cmd$none
-					};
-				}
+						_user$project$Update$upd(
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{rotation: _p4._0}))),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
 			default:
-				var _p10 = _p4._0;
-				switch (_p10) {
+				var _p9 = _p4._0;
+				switch (_p9) {
 					case 32:
 						return _elm_lang$core$Native_Utils.eq(gameState, _user$project$Types$Start) ? {
 							ctor: '_Tuple2',
@@ -10827,7 +10822,7 @@ var _user$project$Main$update = F2(
 										{
 											rotation: A2(
 												_elm_lang$core$Basics_ops['%'],
-												rot + 1,
+												model.rotation + 1,
 												_elm_lang$core$Dict$size(model.figure))
 										}))),
 							_1: _elm_lang$core$Platform_Cmd$none
@@ -10865,17 +10860,17 @@ var _user$project$Main$update = F2(
 				}
 		}
 	});
-var _user$project$Main$subscriptions = function (_p11) {
-	var _p12 = _p11;
+var _user$project$Main$subscriptions = function (_p10) {
+	var _p11 = _p10;
 	return _elm_lang$core$Platform_Sub$batch(
 		{
 			ctor: '::',
 			_0: _elm_lang$keyboard$Keyboard$downs(_user$project$Types$Key),
 			_1: {
 				ctor: '::',
-				_0: _elm_lang$core$Native_Utils.eq(_p12.gameState, _user$project$Types$Play) ? (_p12.down ? A2(_elm_lang$core$Time$every, 10 * _elm_lang$core$Time$millisecond, _user$project$Types$Tick) : A2(
+				_0: _elm_lang$core$Native_Utils.eq(_p11.gameState, _user$project$Types$Play) ? (_p11.down ? A2(_elm_lang$core$Time$every, 10 * _elm_lang$core$Time$millisecond, _user$project$Types$Tick) : A2(
 					_elm_lang$core$Time$every,
-					_elm_lang$core$Time$second / _elm_lang$core$Basics$toFloat(((_p12.nextLevel / 10) | 0) + 1),
+					_elm_lang$core$Time$second / _elm_lang$core$Basics$toFloat(((_p11.lines / 10) | 0) + 1),
 					_user$project$Types$Tick)) : _elm_lang$core$Platform_Sub$none,
 				_1: {ctor: '[]'}
 			}
@@ -10898,9 +10893,8 @@ var _user$project$Main$model = {
 	pile: _user$project$Display$initialPile,
 	down: false,
 	level: 1,
-	nextLevel: 0,
+	lines: 0,
 	score: 0,
-	btbTetris: false,
 	gameState: _user$project$Types$Start
 };
 var _user$project$Main$init = {ctor: '_Tuple2', _0: _user$project$Main$model, _1: _elm_lang$core$Platform_Cmd$none};
